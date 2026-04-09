@@ -1,0 +1,128 @@
+body {
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #2c3e50;
+  color: white;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+#toolbar {
+  background: #34495e;
+  width: 100%;
+  padding: 8px;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+#court-container {
+  position: relative;
+  margin-top: 10px;
+  border: 3px solid white;
+  background: #4caf50;
+  width: 95vw;
+  max-width: 600px;
+  aspect-ratio: 600 / 520;
+  overflow: hidden;
+}
+
+.court-watermark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: center/cover no-repeat;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.line {
+  position: absolute;
+  border: 2px solid white;
+  pointer-events: none;
+}
+
+/* 코트 라인 - 퍼센트 기반 */
+.backboard { width: 16.67%; height: 2px; top: 7.69%; left: 41.67%; }
+.rim { width: 6.67%; height: 0; padding-bottom: 6.67%; border-radius: 50%; top: 8.65%; left: 46.67%; }
+.key-area { width: 30%; height: 36.54%; top: 0; left: 35%; border-top: none; }
+.three-point { width: 86.67%; height: 76.92%; border-radius: 0 0 50% 50%; top: -28.85%; left: 6.67%; }
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.player {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: move;
+  user-select: none;
+  z-index: 5;
+  border: 2px solid white;
+  touch-action: none;
+}
+
+.home { background: #3498db; }
+.away { background: #e74c3c; }
+.ball { background: #ff9f43; width: 20px; height: 20px; z-index: 6; border: 1px solid black; }
+
+button {
+  padding: 6px 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.btn-back { background: #7f8c8d; color: white; }
+.btn-back:hover { background: #636e72; }
+.btn-blue { background: #3498db; color: white; }
+.btn-red { background: #e74c3c; color: white; }
+.btn-orange { background: #f39c12; color: white; }
+.btn-green { background: #2ecc71; color: white; }
+.btn-save { background: #8e44ad; color: white; }
+.btn-save:hover { background: #7d3c98; }
+.btn-gray { background: #95a5a6; color: white; }
+
+#toolbar span {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+}
+
+@media (min-width: 640px) {
+  button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  #toolbar {
+    padding: 10px;
+    gap: 10px;
+  }
+  #toolbar span {
+    font-size: 14px;
+  }
+}

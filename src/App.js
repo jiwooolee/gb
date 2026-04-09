@@ -1,20 +1,32 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useState, useCallback, useEffect } from 'react';
-import { fetchTactics, saveTactic, deleteTactic as deleteTacticApi } from './api';
 import TacticsList from './pages/TacticsList';
 import TacticsBoard from './pages/TacticsBoard';
 import './App.css';
 
+const STORAGE_KEY = 'tactics';
+
+function loadTactics() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveTactics(tactics) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tactics));
+}
+
 function App() {
-  const [tactics, setTactics] = useState([]);
+  const [tactics, setTactics] = useState(loadTactics);
 
-  // 서버에서 전술 목록 불러오기
+  // state 변경 시 자동 저장
   useEffect(() => {
-    fetchTactics().then(setTactics).catch(() => {});
-  }, []);
+    saveTactics(tactics);
+  }, [tactics]);
 
-  // 전술 추가
-  const addTactic = useCallback(async (name) => {
+  const addTactic = useCallback((name) => {
     const id = Date.now();
     const newTactic = {
       id,
@@ -25,24 +37,17 @@ function App() {
       nextId: 0,
     };
     setTactics((prev) => [...prev, newTactic]);
-    await saveTactic(newTactic);
     return id;
   }, []);
 
-  // 전술 삭제
-  const handleDelete = useCallback(async (id) => {
+  const handleDelete = useCallback((id) => {
     setTactics((prev) => prev.filter((t) => t.id !== id));
-    await deleteTacticApi(id);
   }, []);
 
-  // 전술 업데이트
-  const updateTactic = useCallback(async (id, data) => {
-    setTactics((prev) => {
-      const updated = prev.map((t) => (t.id === id ? { ...t, ...data } : t));
-      const tactic = updated.find((t) => t.id === id);
-      if (tactic) saveTactic(tactic);
-      return updated;
-    });
+  const updateTactic = useCallback((id, data) => {
+    setTactics((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...data } : t))
+    );
   }, []);
 
   return (

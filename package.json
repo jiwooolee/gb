@@ -7,8 +7,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
     "gif.js": "^0.2.0",
     "html2canvas": "^1.4.1",
     "react": "^19.2.5",
@@ -19,7 +17,6 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "server": "node server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

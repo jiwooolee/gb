@@ -12,11 +12,12 @@ function TacticsBoard({ tactics, onUpdate }) {
   const isDrawingRef = useRef(false);
   const [players, setPlayers] = useState([]);
   const [frames, setFrames] = useState([]);
+  const [penColor, setPenColor] = useState('#3498db');
   const nextId = useRef(0);
 
   // 저장된 데이터 불러오기
   useEffect(() => {
-    const tactic = tactics.find((t) => t.id === Number(id));
+    const tactic = tactics.find((t) => t.id === id);
     if (!tactic) {
       navigate('/');
       return;
@@ -43,7 +44,7 @@ function TacticsBoard({ tactics, onUpdate }) {
   // 상태를 상위로 저장
   const saveUp = useCallback(
     (newPlayers, newFrames) => {
-      onUpdate(Number(id), {
+      onUpdate(id, {
         players: newPlayers,
         frames: newFrames,
         nextId: nextId.current,
@@ -51,24 +52,6 @@ function TacticsBoard({ tactics, onUpdate }) {
     },
     [id, onUpdate]
   );
-
-  // 전술 파일 저장
-  const saveTacticFile = () => {
-    const tactic = tactics.find((t) => t.id === Number(id));
-    const data = {
-      name: tactic?.name || '전술',
-      players,
-      frames,
-    };
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${data.name}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   // 뒤로가기
   const goBack = () => {
@@ -220,9 +203,9 @@ function TacticsBoard({ tactics, onUpdate }) {
     if (!isDrawingRef.current) return;
     const ctx = canvasRef.current.getContext('2d');
     const pos = getCanvasPos(e);
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 1.5;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = 'white';
+    ctx.strokeStyle = penColor;
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
   };
@@ -238,7 +221,21 @@ function TacticsBoard({ tactics, onUpdate }) {
     const newFrames = [...frames, players.map((p) => ({ ...p }))];
     setFrames(newFrames);
     saveUp(players, newFrames);
-    alert('현재 위치가 저장되었습니다. 다음 움직임을 만들어주세요.');
+  };
+
+  // 장면 클릭 → 해당 장면으로 이동
+  const loadFrame = (index) => {
+    const frame = frames[index];
+    if (!frame) return;
+    setPlayers(frame.map((p) => ({ ...p })));
+  };
+
+  // 장면 삭제
+  const deleteFrame = (e, index) => {
+    e.stopPropagation();
+    const newFrames = frames.filter((_, i) => i !== index);
+    setFrames(newFrames);
+    saveUp(players, newFrames);
   };
 
   // 전술 재생
@@ -315,6 +312,18 @@ function TacticsBoard({ tactics, onUpdate }) {
         <button className="btn-orange" onClick={addBall}>
           공
         </button>
+        <button
+          className={`btn-pen-blue${penColor === '#3498db' ? ' pen-active' : ''}`}
+          onClick={() => setPenColor('#3498db')}
+        >
+          우리팀 선
+        </button>
+        <button
+          className={`btn-pen-red${penColor === '#e74c3c' ? ' pen-active' : ''}`}
+          onClick={() => setPenColor('#e74c3c')}
+        >
+          상대팀 선
+        </button>
         <button className="btn-gray" onClick={clearLines}>
           선 지우기
         </button>
@@ -331,12 +340,35 @@ function TacticsBoard({ tactics, onUpdate }) {
         >
           {isCreatingGif ? '생성 중...' : 'GIF 저장'}
         </button>
-        <button className="btn-save" onClick={saveTacticFile}>
-          💾 저장
-        </button>
         <span>장면: {frames.length}</span>
       </div>
 
+      <div className="board-layout">
+      {frames.length > 0 && (
+        <div className="frames-panel">
+          <div className="frames-panel-title">장면 목록</div>
+          {frames.map((frame, i) => (
+            <div key={i} className="frame-thumb" onClick={() => loadFrame(i)}>
+              <div className="frame-thumb-court">
+                {frame.map((p) => (
+                  <div
+                    key={p.id}
+                    className={`frame-thumb-player ${p.type}`}
+                    style={{
+                      left: `${(p.x / 600) * 100}%`,
+                      top: `${(p.y / 520) * 100}%`,
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="frame-thumb-label">
+                <span>#{i + 1}</span>
+                <button className="frame-thumb-delete" onClick={(e) => deleteFrame(e, i)}>×</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div id="court-container" ref={containerRef}>
         <div
           className="court-watermark"
@@ -369,6 +401,7 @@ function TacticsBoard({ tactics, onUpdate }) {
             {p.label}
           </div>
         ))}
+      </div>
       </div>
     </>
   );

@@ -12,9 +12,9 @@ function TacticsList({ tactics, onAdd, onDelete }) {
     setShowModal(true);
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newName.trim()) return;
-    const id = onAdd(newName.trim());
+    const id = await onAdd(newName.trim());
     setShowModal(false);
     navigate(`/board/${id}`);
   };

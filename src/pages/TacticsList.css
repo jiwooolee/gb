@@ -40,6 +40,10 @@
   background: #27ae60;
 }
 
+.btn-create + .tactics-grid {
+  margin-top: 24px;
+}
+
 .tactics-grid {
   width: 100%;
   max-width: 600px;

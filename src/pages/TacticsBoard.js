@@ -344,31 +344,6 @@ function TacticsBoard({ tactics, onUpdate }) {
       </div>
 
       <div className="board-layout">
-      {frames.length > 0 && (
-        <div className="frames-panel">
-          <div className="frames-panel-title">장면 목록</div>
-          {frames.map((frame, i) => (
-            <div key={i} className="frame-thumb" onClick={() => loadFrame(i)}>
-              <div className="frame-thumb-court">
-                {frame.map((p) => (
-                  <div
-                    key={p.id}
-                    className={`frame-thumb-player ${p.type}`}
-                    style={{
-                      left: `${(p.x / 600) * 100}%`,
-                      top: `${(p.y / 520) * 100}%`,
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="frame-thumb-label">
-                <span>#{i + 1}</span>
-                <button className="frame-thumb-delete" onClick={(e) => deleteFrame(e, i)}>×</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
       <div id="court-container" ref={containerRef}>
         <div
           className="court-watermark"
@@ -402,6 +377,31 @@ function TacticsBoard({ tactics, onUpdate }) {
           </div>
         ))}
       </div>
+      {frames.length > 0 && (
+        <div className="frames-panel">
+          <div className="frames-panel-title">장면</div>
+          {frames.map((frame, i) => (
+            <div key={i} className="frame-thumb" onClick={() => loadFrame(i)}>
+              <div className="frame-thumb-court">
+                {frame.map((p) => (
+                  <div
+                    key={p.id}
+                    className={`frame-thumb-player ${p.type}`}
+                    style={{
+                      left: `${(p.x / 600) * 100}%`,
+                      top: `${(p.y / 520) * 100}%`,
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="frame-thumb-label">
+                <span>#{i + 1}</span>
+                <button className="frame-thumb-delete" onClick={(e) => deleteFrame(e, i)}>×</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       </div>
     </>
   );

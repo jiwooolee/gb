@@ -268,6 +268,25 @@ function TacticsBoard({ tactics, onUpdate }) {
   // GIF 생성
   const [isCreatingGif, setIsCreatingGif] = useState(false);
 
+  // 두 프레임 사이 보간
+  const interpolateFrames = (frameA, frameB, steps) => {
+    const result = [];
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const interpolated = frameA.map((pA) => {
+        const pB = frameB.find((p) => p.id === pA.id);
+        if (!pB) return { ...pA };
+        return {
+          ...pA,
+          x: pA.x + (pB.x - pA.x) * t,
+          y: pA.y + (pB.y - pA.y) * t,
+        };
+      });
+      result.push(interpolated);
+    }
+    return result;
+  };
+
   const createGif = async () => {
     if (frames.length < 2) {
       alert('최소 2개 이상의 장면을 저장해야 합니다.');
@@ -276,6 +295,7 @@ function TacticsBoard({ tactics, onUpdate }) {
 
     setIsCreatingGif(true);
     const container = containerRef.current;
+    const STEPS = 10;
 
     const gif = new GIF({
       workers: 2,
@@ -285,15 +305,20 @@ function TacticsBoard({ tactics, onUpdate }) {
       height: container.clientHeight,
     });
 
-    for (let i = 0; i < frames.length; i++) {
-      setPlayers(frames[i].map((p) => ({ ...p, transition: false })));
-      await new Promise((r) => setTimeout(r, 100));
+    for (let i = 0; i < frames.length - 1; i++) {
+      const tweens = interpolateFrames(frames[i], frames[i + 1], STEPS);
+      for (let s = 0; s < tweens.length; s++) {
+        setPlayers(tweens[s].map((p) => ({ ...p, transition: false })));
+        await new Promise((r) => setTimeout(r, 80));
 
-      const canvas = await html2canvas(container, {
-        backgroundColor: '#4caf50',
-        scale: 1,
-      });
-      gif.addFrame(canvas, { delay: 1000 });
+        const canvas = await html2canvas(container, {
+          backgroundColor: '#4caf50',
+          scale: 1,
+        });
+        // 첫/마지막 프레임은 잠깐 멈춤, 중간은 빠르게
+        const delay = (s === 0 || s === STEPS) ? 400 : 80;
+        gif.addFrame(canvas, { delay });
+      }
     }
 
     gif.on('finished', (blob) => {

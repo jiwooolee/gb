@@ -4,6 +4,20 @@ import html2canvas from 'html2canvas';
 import GIF from 'gif.js';
 import './TacticsBoard.css';
 
+// 기존 픽셀 좌표 → 비율 변환 (마이그레이션)
+function migratePlayers(players) {
+  return players.map((p) => {
+    if (p.x > 1 || p.y > 1) {
+      return { ...p, x: p.x / 600, y: p.y / 520 };
+    }
+    return p;
+  });
+}
+
+function migrateFrames(frames) {
+  return frames.map((frame) => migratePlayers(frame));
+}
+
 function TacticsBoard({ tactics, onUpdate }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -22,8 +36,8 @@ function TacticsBoard({ tactics, onUpdate }) {
       navigate('/');
       return;
     }
-    setPlayers(tactic.players || []);
-    setFrames(tactic.frames || []);
+    setPlayers(migratePlayers(tactic.players || []));
+    setFrames(migrateFrames(tactic.frames || []));
     nextId.current = tactic.nextId || 0;
   }, [id, tactics, navigate]);
 
@@ -59,20 +73,19 @@ function TacticsBoard({ tactics, onUpdate }) {
     navigate('/');
   };
 
-  // 컨테이너 크기 대비 비율로 좌표 변환
+  // 컨테이너 크기
   const getContainerSize = () => {
     const c = containerRef.current;
     return c ? { w: c.clientWidth, h: c.clientHeight } : { w: 600, h: 520 };
   };
 
-  // 선수 추가 (비율 좌표 사용)
+  // 선수 추가 (비율 좌표)
   const addPlayer = (type) => {
     const pid = nextId.current++;
-    const { w, h } = getContainerSize();
     setPlayers((prev) => {
       const next = [
         ...prev,
-        { id: pid, type, label: type === 'home' ? 'H' : 'A', x: w * 0.08, y: h * 0.1 },
+        { id: pid, type, label: type === 'home' ? 'H' : 'A', x: 0.08, y: 0.1 },
       ];
       saveUp(next, frames);
       return next;
@@ -82,11 +95,10 @@ function TacticsBoard({ tactics, onUpdate }) {
   // 공 추가
   const addBall = () => {
     const pid = nextId.current++;
-    const { w, h } = getContainerSize();
     setPlayers((prev) => {
       const next = [
         ...prev,
-        { id: pid, type: 'ball', label: '', x: w * 0.48, y: h * 0.48 },
+        { id: pid, type: 'ball', label: '', x: 0.48, y: 0.48 },
       ];
       saveUp(next, frames);
       return next;
@@ -113,9 +125,10 @@ function TacticsBoard({ tactics, onUpdate }) {
         const dy = pos.y - start.y;
         start = pos;
 
+        const { w, h } = getContainerSize();
         setPlayers((prev) =>
           prev.map((p) =>
-            p.id === playerId ? { ...p, x: p.x + dx, y: p.y + dy } : p
+            p.id === playerId ? { ...p, x: p.x + dx / w, y: p.y + dy / h } : p
           )
         );
       };
@@ -184,7 +197,7 @@ function TacticsBoard({ tactics, onUpdate }) {
     };
   };
 
-  // 선 그리기 (Raw = 네이티브 이벤트, 일반 = React 이벤트 공용)
+  // 선 그리기
   const handleCanvasDownRaw = (e) => {
     isDrawingRef.current = true;
     const ctx = canvasRef.current.getContext('2d');
@@ -272,7 +285,6 @@ function TacticsBoard({ tactics, onUpdate }) {
       height: container.clientHeight,
     });
 
-    // 각 장면을 캡처
     for (let i = 0; i < frames.length; i++) {
       setPlayers(frames[i].map((p) => ({ ...p, transition: false })));
       await new Promise((r) => setTimeout(r, 100));
@@ -366,8 +378,8 @@ function TacticsBoard({ tactics, onUpdate }) {
             key={p.id}
             className={`player ${p.type}`}
             style={{
-              left: p.x,
-              top: p.y,
+              left: `${p.x * 100}%`,
+              top: `${p.y * 100}%`,
               transition: p.transition ? 'all 1s ease-in-out' : 'none',
             }}
             onMouseDown={(e) => handlePointerDown(e, p.id)}
@@ -388,8 +400,8 @@ function TacticsBoard({ tactics, onUpdate }) {
                     key={p.id}
                     className={`frame-thumb-player ${p.type}`}
                     style={{
-                      left: `${(p.x / 600) * 100}%`,
-                      top: `${(p.y / 520) * 100}%`,
+                      left: `${p.x * 100}%`,
+                      top: `${p.y * 100}%`,
                     }}
                   />
                 ))}
